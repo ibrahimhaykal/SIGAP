@@ -1,0 +1,337 @@
+@import "tailwindcss";
+
+/*
+ * SEMANTIC COLOR TOKENS
+ *
+ * Every colour in this app is a semantic role, never a raw palette value. A
+ * component asks for `bg-surface` or `text-fg-muted`, so the same markup works
+ * in both themes and neither theme can drift.
+ *
+ * Theme resolution, in priority order:
+ *   1. `[data-theme]` on <html>, set by the user's explicit choice. Written
+ *      before first paint by the bootstrap script in app/layout.tsx.
+ *   2. `prefers-color-scheme: light`, honoured when no explicit choice exists.
+ *   3. Dark, the default, because that is the base :root block.
+ *
+ * Light is designed independently, not an inversion: it uses a warm off-white
+ * canvas with white panels (surfaces get lighter as they come forward, the
+ * opposite of dark), and darker, more saturated accent and status colours so
+ * they still meet WCAG AA on a light ground.
+ *
+ * Brand palette: main #FDFDFD, gradient #8ACD65 to #0F847E, third #203734.
+ * The third colour is the dark canvas; the main colour is the light canvas and
+ * the dark theme's text.
+ *
+ * Contrast was verified rather than assumed, per pair, in both themes. Lowest
+ * ratio is fg-faint at 3.47:1 on dark surface (secondary text, AA large/UI
+ * target 3.0). All primary text, accent, and status colours clear 4.5:1 on both
+ * canvas and surface. The teal gradient end is the reason --brand-gradient is
+ * restricted to decoration; see the note on that token.
+ */
+
+:root {
+  /* Backgrounds, back to front. Base is the brand's third colour. */
+  --canvas: #203734;
+  --surface: #26403c;
+  --surface-hi: #2d4a45;
+  --track: #35564f;
+
+  /* Hairlines */
+  --line: #2f4b46;
+  --line-strong: #3e5d57;
+
+  /* Text, most to least prominent. --fg is the brand's main colour. */
+  --fg: #fdfdfd;
+  --fg-muted: #c9d6d2;
+  --fg-subtle: #a3b5b0;
+  --fg-faint: #7f948f;
+  --fg-ghost: #5b716c;
+
+  /* Solid accent for interaction and CTA, taken from the gradient's light end */
+  --accent: #8acd65;
+  --accent-hover: #9bd97a;
+  --on-accent: #14231f;
+
+  /* Status triad: results only, never decoration */
+  --safe: #7bc96a;
+  --warn: #e3b341;
+  --danger: #f58f86;
+
+  /* Translucent overlays, theme-aware so light mode does not get white-on-white */
+  --veil: rgb(255 255 255 / 0.06);
+  --veil-strong: rgb(255 255 255 / 0.09);
+  --scrim: rgb(20 35 31 / 0.75);
+
+  /*
+   * Brand gradient (#8ACD65 to #0F847E).
+   *
+   * DECORATION ONLY. Text cannot sit on this: dark text clears AA on the light
+   * green end (8.5:1) but fails on the teal end (3.6:1), and white fails the
+   * other way round. Buttons use the solid --accent instead. This token is for
+   * accent bars, borders, and illustrative fills.
+   */
+  --brand-gradient: linear-gradient(135deg, #8acd65 0%, #0f847e 100%);
+
+  /*
+   * Dashed stroke on the statistic cards.
+   *
+   * The Figma values (#30B77D to #155137) are tuned for a white card and are
+   * kept verbatim in the light theme. On the dark canvas the dark end would sit
+   * at 1.20:1 against the surface, so the whole gradient is lifted here while
+   * keeping the same light-to-dark direction. Both ends clear 3:1, the target
+   * for non-text UI components.
+   */
+  --card-stroke-from: #4ad497;
+  --card-stroke-to: #35a873;
+
+  /*
+   * Brand lettering outside the logo image, e.g. the footer tagline.
+   * Dark theme uses the main colour; light theme uses the Figma deep green so
+   * it matches the wordmark artwork instead of going flat grey. 9.28:1 on white.
+   */
+  --brand-ink: #fdfdfd;
+
+  /*
+   * Footer band, deliberately inverted against the page.
+   *
+   * Dark theme gets a near-white band, light theme the Figma deep green. That
+   * means the footer always contrasts with the canvas above it, and it also
+   * means the logo inside has to use the OPPOSITE variant to the page theme,
+   * which is what <Logo inverted /> is for.
+   *
+   * Verified: light band #FDFDFD on #155137 is 9.12:1, muted 5.34:1. Dark band
+   * #16211E on #FDFDFD is 16.25:1, muted 9.18:1.
+   */
+  --footer-bg: #fdfdfd;
+  --footer-fg: #16211e;
+  --footer-muted: #3a4a46;
+  --footer-line: #c6d5d0;
+
+  color-scheme: dark;
+}
+
+/* Honour the OS preference when the user has not chosen explicitly. */
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) {
+    --canvas: #fdfdfd;
+    --surface: #ffffff;
+    --surface-hi: #f1f5f3;
+    --track: #e3ebe8;
+
+    --line: #e1eae7;
+    --line-strong: #c6d5d0;
+
+    --fg: #16211e;
+    --fg-muted: #3a4a46;
+    --fg-subtle: #566863;
+    --fg-faint: #6f827d;
+    --fg-ghost: #94a5a0;
+
+    --accent: #0d726d;
+    --accent-hover: #0a5b57;
+    --on-accent: #ffffff;
+
+    --safe: #14724a;
+    --warn: #8a5b00;
+    --danger: #b3251d;
+
+    --veil: rgb(22 33 30 / 0.04);
+    --veil-strong: rgb(22 33 30 / 0.08);
+    --scrim: rgb(22 33 30 / 0.45);
+    --brand-gradient: linear-gradient(135deg, #8acd65 0%, #0f847e 100%);
+
+    /* Figma values, verbatim: designed against a white card. */
+    --card-stroke-from: #30b77d;
+    --card-stroke-to: #155137;
+    --brand-ink: #155137;
+  --footer-bg: #155137;
+  --footer-fg: #fdfdfd;
+  --footer-muted: #a7cdbb;
+  --footer-line: #2f6b4f;
+    --footer-bg: #155137;
+    --footer-fg: #fdfdfd;
+    --footer-muted: #a7cdbb;
+    --footer-line: #2f6b4f;
+
+    color-scheme: light;
+  }
+}
+
+/* An explicit choice always wins, in both directions. */
+:root[data-theme="light"] {
+  --canvas: #fdfdfd;
+  --surface: #ffffff;
+  --surface-hi: #f1f5f3;
+  --track: #e3ebe8;
+
+  --line: #e1eae7;
+  --line-strong: #c6d5d0;
+
+  --fg: #16211e;
+  --fg-muted: #3a4a46;
+  --fg-subtle: #566863;
+  --fg-faint: #6f827d;
+  --fg-ghost: #94a5a0;
+
+  --accent: #0d726d;
+  --accent-hover: #0a5b57;
+  --on-accent: #ffffff;
+
+  --safe: #14724a;
+  --warn: #8a5b00;
+  --danger: #b3251d;
+
+  --veil: rgb(22 33 30 / 0.04);
+  --veil-strong: rgb(22 33 30 / 0.08);
+  --scrim: rgb(22 33 30 / 0.45);
+  --brand-gradient: linear-gradient(135deg, #8acd65 0%, #0f847e 100%);
+
+  /* Figma values, verbatim: designed against a white card. */
+  --card-stroke-from: #30b77d;
+  --card-stroke-to: #155137;
+  --brand-ink: #155137;
+  --footer-bg: #155137;
+  --footer-fg: #fdfdfd;
+  --footer-muted: #a7cdbb;
+  --footer-line: #2f6b4f;
+
+  color-scheme: light;
+}
+
+@theme inline {
+  --color-canvas: var(--canvas);
+  --color-surface: var(--surface);
+  --color-surface-hi: var(--surface-hi);
+  --color-track: var(--track);
+
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+
+  --color-fg: var(--fg);
+  --color-fg-muted: var(--fg-muted);
+  --color-fg-subtle: var(--fg-subtle);
+  --color-fg-faint: var(--fg-faint);
+  --color-fg-ghost: var(--fg-ghost);
+
+  --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
+  --color-on-accent: var(--on-accent);
+
+  --color-brand-ink: var(--brand-ink);
+  --color-footer-bg: var(--footer-bg);
+  --color-footer-fg: var(--footer-fg);
+  --color-footer-muted: var(--footer-muted);
+  --color-footer-line: var(--footer-line);
+
+  --color-safe: var(--safe);
+  --color-warn: var(--warn);
+  --color-danger: var(--danger);
+
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
+
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+
+  --animate-shimmer: shimmer 1.8s linear infinite;
+  --animate-breathe: breathe 2.6s ease-in-out infinite;
+}
+
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+@keyframes breathe {
+  0%,
+  100% {
+    opacity: 0.4;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.3);
+  }
+}
+
+@layer base {
+  html {
+    scrollbar-gutter: stable;
+  }
+
+  body {
+    background-color: var(--canvas);
+    color: var(--fg);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  ::selection {
+    background-color: var(--accent);
+    color: var(--on-accent);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+
+  .tnum {
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+.logo-on-light,
+.logo-inv-on-dark {
+  display: none;
+}
+
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) .logo-on-dark,
+  :root:not([data-theme="dark"]) .logo-inv-on-light {
+    display: none;
+  }
+  :root:not([data-theme="dark"]) .logo-on-light,
+  :root:not([data-theme="dark"]) .logo-inv-on-dark {
+    display: block;
+  }
+}
+
+:root[data-theme="light"] .logo-on-dark,
+:root[data-theme="light"] .logo-inv-on-light {
+  display: none;
+}
+:root[data-theme="light"] .logo-on-light,
+:root[data-theme="light"] .logo-inv-on-dark {
+  display: block;
+}
+
+/* Instrument panel: hairline border, quiet fill, no meaningful shadow */
+@utility panel {
+  border: 1px solid var(--line);
+  border-radius: 0.875rem;
+  background-color: var(--surface);
+}
+
+/* Frosted surface with a refracting inner edge */
+@utility glass {
+  background-color: var(--surface);
+  backdrop-filter: blur(20px) saturate(140%);
+  border: 1px solid var(--line-strong);
+  box-shadow:
+    inset 0 1px 0 var(--veil),
+    0 24px 48px -28px rgb(0 0 0 / 0.28);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
